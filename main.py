@@ -154,6 +154,8 @@ class ProcessFunction(object):  ##这里负责写一些数字信号处理的方�
                                               analog=True))
             feature.filtz = signal.lti(*signal.bilinear(feature.filts.num, feature.filts.den, fs))
 
+            feature.z, feature.p = signal.bilinear(feature.filts.num, feature.filts.den, fs)
+
             wz, hz = signal.freqz(feature.filtz.num, feature.filtz.den)
 
             ax = feature.fig1.add_subplot(111)
@@ -177,11 +179,13 @@ class ProcessFunction(object):  ##这里负责写一些数字信号处理的方�
             feature.Rp=float(feature.Rp)
             feature.As=float(feature.As)
             N, Wn = signal.cheb1ord(omiga_p, omiga_st, feature.Rp, feature.As, True)
-            filts = signal.lti(*signal.cheby1(N, 0.1,Wn, btype=str(feature.filterType),
+            feature.filts = signal.lti(*signal.cheby1(N, 0.1,Wn, btype=str(feature.filterType),
                                               analog=True))##切比雪夫是还有一个纹波参数
-            filtz = signal.lti(*signal.bilinear(filts.num, filts.den, fs))
+            feature.filtz = signal.lti(*signal.bilinear(feature.filts.num, feature.filts.den, fs))
 
-            wz, hz = signal.freqz(filtz.num, filtz.den)
+            feature.z,feature.p=signal.bilinear(feature.filts.num, feature.filts.den, fs)
+
+            wz, hz = signal.freqz(feature.filtz.num, feature.filtz.den)
 
             ax = feature.fig1.add_subplot(111)
             ax.cla()  # TODO:删除原图，让画布上只有新的一次的图
@@ -193,6 +197,8 @@ class ProcessFunction(object):  ##这里负责写一些数字信号处理的方�
             ax.set_title('Chebyshev I')
             feature.fig1.subplots_adjust(left=None, bottom=0.2, right=None, top=None, wspace=None, hspace=None)
             feature.canvas1.draw()  # TODO:这里开始绘制
+
+
 
     def apply_IIR(self,feature):
         f = wave.open(feature.path,"rb")
@@ -216,20 +222,14 @@ class ProcessFunction(object):  ##这里负责写一些数字信号处理的方�
         #print(time)
         t = np.linspace(0, nframes/ framerate, nframes, endpoint=False)
 
+        feature.yout=signal.filtfilt(feature.z,feature.p,wave_data[:, 0],method='gust')
 
-        ##feature.precessed_Audio = feature.filtz.output(wave_data[:, 0], time, X0=None)
-        u = (np.cos(2 * np.pi * 4 * t) + 0.6 * np.sin(2 * np.pi * 40 * t) +
-             0.5 * np.cos(2 * np.pi * 80 * t))
-        print(type(u))
-        feature.tout ,  feature.yout ,  feature.xout =  signal.lsim(feature.filts, wave_data[:, 0] , t ,X0=None)
-        #
-        #feature.tout, feature.yout, feature.xout =feature.filts.output(wave_data[:, 0], t, X0=None)
         print(feature.yout)
         ax = feature.fig2.add_subplot(111)
         #调整图像大小
         ax.cla()  # TODO:删除原图，让画布上只有新的一次的图
         #ax.clear()
-        ax.plot(feature.tout, feature.yout)
+        ax.plot(t, feature.yout)
         ax.set_title('Passed Filter')
         ax.set_xlabel('Time [sec]')
 
