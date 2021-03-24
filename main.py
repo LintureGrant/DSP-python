@@ -99,6 +99,8 @@ class ProcessFunction(object):  ##这里负责写一些数字信号处理的方�
         #
         highFreq=  (np.argmax(fft_signal[int(len(fft_signal) / 2):len(fft_signal)]) )*freqInteral
         feature.textBrowser_2.append("FFT INFO:   Highest frequency: "+str(highFreq))
+
+
         ax = feature.fig6.add_subplot(111)
         # 调整图像大小
         ax.cla()  # TODO:删除原图，让画布上只有新的一次的图
@@ -233,6 +235,24 @@ class ProcessFunction(object):  ##这里负责写一些数字信号处理的方�
 
         feature.fig2.subplots_adjust(left=None, bottom=0.2, right=None, top=None, wspace=None, hspace=None)
         feature.canvas2.draw()  # TODO:这里开始绘制
+
+        ##绘制出时域的图像之后，再到频率分析
+        #FFT变换#
+        fft_signal = np.fft.fft(feature.yout)
+        fft_signal = np.fft.fftshift(abs(fft_signal))
+        # 建立频率轴
+        Freq = np.arange(-framerate / 2, framerate / 2, framerate / len(fft_signal))
+
+        ####绘图######
+        ax = feature.fig4.add_subplot(111)
+        # 调整图像大小
+        ax.cla()  # TODO:删除原图，让画布上只有新的一次的图
+        ax.plot(Freq, fft_signal, color='red')
+        ax.set_title('FFT Figure')
+        ax.set_xlabel('Frequency [Hz]')
+        ax.set_ylabel('Am')
+        feature.fig4.subplots_adjust(left=None, bottom=0.2, right=None, top=None, wspace=None, hspace=None)
+        feature.canvas4.draw()  # TODO:这里开始绘制
 
 
         #feature.precessed_Audio=feature.filtz.output(wave_data,time,X0=None)#求系统的零状态响应
